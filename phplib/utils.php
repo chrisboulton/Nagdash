@@ -183,10 +183,12 @@ class NagdashHelpers {
                 if (is_string($host_state)) {
                     $errors[] = "Could not connect to API on host {$host['hostname']}, port {$host['port']}: {$host_state}";
                 } else {
-                    foreach ($host_state as $this_host => $null) {
-                        $host_state[$this_host]['tag'] = $host['tag'];
+                    foreach ($host_state as $this_host => $data) {
+                        $data['tag'] = $host['tag'];
+                        $data['hostname'] = $this_host;
+                        $key = $host['tag'] . '|' . $this_host;
+                        $state[$key] = $data;
                     }
-                    $state += (array) $host_state;
                 }
             }
         }
@@ -219,7 +221,8 @@ class NagdashHelpers {
         if ($filter_select_last_state_change > 0) {
             $state_change_backstop = time() - $filter_select_last_state_change;
         }
-        foreach ($state as $hostname => $host_detail) {
+        foreach ($state as $key => $host_detail) {
+            $hostname = $host_detail['hostname'];
             // Check if the host matches the filter
             if (preg_match("/$filter/", $hostname)) {
                 // If the host is NOT OK...
